@@ -45,18 +45,18 @@ public class PersonServiceTest {
     void setUp() {
         request = new CreatePersonRequest();
         request.setName("John");
-        request.setAge(25);
+        request.setAge(26);
         request.setAddress(address);
         request.setJob(job);
 
         person = new Person();
-        person.setId("abcdf12345");
+        person.setId("abgfrg35616");
         person.setName("John");
-        person.setAge(25);
+        person.setAge(26);
         person.setAddress(address);
         person.setJob(job);
 
-        response = new PersonResponse("abcdf12345", "John", 25, address, job);
+        response = new PersonResponse("abgfrg35616", "John", 26, address, job);
     }
 
 
