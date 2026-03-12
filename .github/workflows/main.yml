@@ -33,13 +33,12 @@ jobs:
         run: gh extension install github/copilot-cli
 
       # ===============================
-      # 4️⃣ Authenticate GitHub CLI
+      # 4️⃣ Authenticate GitHub CLI using github.token
       # ===============================
       - name: Authenticate GitHub CLI
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}  # GitHub token with Copilot access
-        run: |
-          echo "$GH_TOKEN" | gh auth login --with-token
+          GH_TOKEN: ${{ github.token }}  # automatic token provided by GitHub Actions
+        run: gh auth login --with-token <<< "$GH_TOKEN"
 
       # ===============================
       # 5️⃣ Generate list of changed files
@@ -74,6 +73,8 @@ jobs:
       # 7️⃣ Commit generated tests and create PR
       # ===============================
       - name: Commit and create pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
