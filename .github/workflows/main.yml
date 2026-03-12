@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     steps:
-      # 1️⃣ Checkout the repository
+      # 1️⃣ Checkout repository
       - uses: actions/checkout@v3
 
       # 2️⃣ Set up Java
@@ -26,7 +26,7 @@ jobs:
       # 4️⃣ Install GitHub Copilot CLI extension
       - name: Install GitHub Copilot CLI extension
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}   # Personal Access Token with Copilot access
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}  # Personal Access Token with Copilot access
         run: gh extension install github/copilot-cli-gh
 
       # 5️⃣ Generate list of changed files
