@@ -6,6 +6,7 @@ on:
 jobs:
   generate-tests:
     runs-on: ubuntu-latest   # GitHub-hosted runner
+    environment: dev
     steps:
       # 1️⃣ get repo code
       - name: Checkout code
@@ -38,7 +39,7 @@ jobs:
       # 5️⃣ run python script
       - name: Run AI test generator
         env:
-          dev: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python python_tools/generate_tests.py
 
