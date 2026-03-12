@@ -20,11 +20,11 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'   # Required
+          distribution: 'temurin'
           java-version: '17'
 
       # ===============================
-      # 3️⃣ Install GitHub CLI and Copilot CLI
+      # 3️⃣ Install GitHub CLI and Copilot CLI extension
       # ===============================
       - name: Install GitHub CLI
         run: sudo apt update && sudo apt install -y gh
@@ -33,15 +33,7 @@ jobs:
         run: gh extension install github/copilot-cli
 
       # ===============================
-      # 4️⃣ Authenticate GitHub CLI using github.token
-      # ===============================
-      - name: Authenticate GitHub CLI
-        env:
-          GH_TOKEN: ${{ github.token }}  # automatic token provided by GitHub Actions
-        run: gh auth login --with-token <<< "$GH_TOKEN"
-
-      # ===============================
-      # 5️⃣ Generate list of changed files
+      # 4️⃣ Generate list of changed files
       # ===============================
       - name: Generate diff files
         run: |
@@ -51,7 +43,7 @@ jobs:
           cat diff_files.txt
 
       # ===============================
-      # 6️⃣ Generate JUnit tests using Copilot CLI
+      # 5️⃣ Generate JUnit tests using Copilot CLI
       # ===============================
       - name: Generate unit tests with Copilot
         run: |
@@ -70,11 +62,11 @@ jobs:
           done < diff_files.txt
 
       # ===============================
-      # 7️⃣ Commit generated tests and create PR
+      # 6️⃣ Commit generated tests and create PR
       # ===============================
       - name: Commit and create pull request
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}  # automatic token provided by GitHub Actions
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
