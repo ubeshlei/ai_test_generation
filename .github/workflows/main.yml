@@ -26,8 +26,13 @@ jobs:
       # 4️⃣ get changed files
       - name: Get changed files
         run: |
-          git fetch origin main
-          git diff --name-only origin/main...HEAD > diff_files.txt
+          # get last change from main branch
+          git fetch origin main --depth=2
+          
+          # do diff between main and current commit
+          git diff --name-only origin/main $GITHUB_SHA > diff_files.txt
+          
+          # list to check
           cat diff_files.txt
 
       # 5️⃣ run python script
