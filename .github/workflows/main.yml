@@ -27,7 +27,7 @@ jobs:
       - name: Install GitHub Copilot CLI extension
         env:
           GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}   # Personal Access Token with Copilot access
-        run: gh extension install github/copilot-cli
+        run: gh extension install github/copilot-cli-gh
 
       # 5️⃣ Generate list of changed files
       - name: Generate diff files
