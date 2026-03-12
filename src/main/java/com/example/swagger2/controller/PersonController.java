@@ -37,7 +37,7 @@ public class PersonController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get a person by Id")
+    @Operation(summary = "Get a person by Idddddd")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",  description = "User information retrieved successfully"),
             @ApiResponse(responseCode = "400",  description = "Bad request"),
