@@ -1,16 +1,16 @@
 import os
-import openai
 from pathlib import Path
+from openai import OpenAI
 
 # ===============================
-# 1.Init OpenAI API
+# 1️⃣ Init OpenAI API
 # ===============================
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if openai.api_key is None:
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+if client.api_key is None:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
 # ===============================
-# 2 path to changed files
+# 2️⃣ Path to changed files
 # ===============================
 diff_file_path = Path("diff_files.txt")
 if not diff_file_path.exists():
@@ -19,7 +19,7 @@ if not diff_file_path.exists():
 changed_files = [line.strip() for line in diff_file_path.read_text().splitlines() if line.strip()]
 
 # ===============================
-# 3 function to generate test for a single class
+# 3️⃣ Function to generate test for a single class
 # ===============================
 def generate_test_for_class(file_path):
     path = Path(file_path)
@@ -31,12 +31,12 @@ def generate_test_for_class(file_path):
 
     # Minimal prompt to generate JUnit 5 tests
     messages = [
-        {"role": "system", "content": "You are an expert Java developer. Generate JUnit 5 unit tests."},
-        {"role": "user", "content": f"Generate JUnit 5 tests for the following Java code:\n\n{code}"}
+        {"role": "system", "content": "You are an expert Java developer. Generate JUnit 5 unit tests."},  # type: ignore[list-item]
+        {"role": "user", "content": f"Generate JUnit 5 tests for the following Java code:\n\n{code}"}       # type: ignore[list-item]
     ]
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=messages,
             temperature=0.2,
@@ -59,7 +59,7 @@ def generate_test_for_class(file_path):
     print(f"Generated test for {file_path} -> {test_file}")
 
 # ===============================
-# 4️ main function to process all changed files
+# 4️⃣ Main function to process all changed files
 # ===============================
 def main():
     if not changed_files:
