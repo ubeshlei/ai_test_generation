@@ -37,7 +37,7 @@ jobs:
       # 5️⃣ Generate JUnit tests using Copilot CLI (requires COPILOT_TOKEN)
       - name: Generate unit tests with Copilot
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Personal Access Token with Copilot access
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}   # Personal Access Token with Copilot access
         run: |
           if [ ! -s diff_files.txt ]; then
             echo "No changed files detected. Skipping test generation."
@@ -65,7 +65,7 @@ jobs:
       # 6️⃣ Commit generated tests and create PR
       - name: Commit and create pull request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
