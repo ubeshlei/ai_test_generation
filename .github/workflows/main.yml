@@ -1,64 +1,92 @@
-name: AI Test Generation
-
+name: Auto-generate unit tests with Copilot
 on:
-  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   generate-tests:
-    runs-on: ubuntu-latest   # GitHub-hosted runner
+    runs-on: ubuntu-latest
+    environment: dev   # your environment
     steps:
-      # 1️⃣ get repo code
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # ===============================
+      #  Checkout the repository
+      # ===============================
+      - uses: actions/checkout@v3
 
-      # 2️⃣ install python
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      # ===============================
+      #  Set up Java
+      # ===============================
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
-          python-version: '3.11'
+          java-version: '17'
 
-      # 3️⃣ install python dependencies
-      - name: Install dependencies
+      # ===============================
+      #  Install GitHub CLI and Copilot CLI
+      # ===============================
+      - name: Install GitHub CLI & Copilot CLI
         run: |
-          python -m pip install --upgrade pip
-          pip install openai
+          sudo apt update
+          sudo apt install -y gh
+          # Install Copilot CLI
+          curl -sSL https://github.com/github/copilot-cli/releases/latest/download/copilot-linux-amd64.tar.gz | tar xz -C /usr/local/bin
 
-      # 4️⃣ get changed files
-      - name: Get changed files
+      # ===============================
+      #  Authenticate GitHub CLI
+      # ===============================
+      - name: Authenticate GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          # get last change from main branch
-          git fetch origin main --depth=2
-          
-          # do diff between main and current commit
-          git diff --name-only origin/main $GITHUB_SHA > diff_files.txt
-          
-          # list to check
+          echo "$GH_TOKEN" | gh auth login --with-token
+
+      # ===============================
+      #  Generate list of changed files
+      # ===============================
+      - name: Generate diff files
+        run: |
+          git fetch origin development
+          git diff --name-only origin/development..HEAD > diff_files.txt
+          echo "Changed files:"
           cat diff_files.txt
 
-      # 5️⃣ run python script
-      - name: Run AI test generator
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      # ===============================
+      #  Generate JUnit tests using Copilot CLI
+      # ===============================
+      - name: Generate unit tests with Copilot
         run: |
-          python python_tools/generate_tests.py
+          if [ ! -s diff_files.txt ]; then
+            echo "No changed files detected. Skipping test generation."
+            exit 0
+          fi
 
-      # 6️⃣ run tests local
-      - name: Compile and run tests
+          while read file; do
+            if [[ $file == src/main/java/*.java ]]; then
+              test_file="src/test/java/${file#src/main/java/}Test.java"
+              mkdir -p "$(dirname $test_file)"
+              echo "Generating test for $file -> $test_file"
+              copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
+            fi
+          done < diff_files.txt
+
+      # ===============================
+      # 7️⃣ Commit generated tests and create PR
+      # ===============================
+      - name: Commit and create pull request
         run: |
-          mvn test
-
-      # # 7️⃣ optional: run coverage
-      # - name: Run coverage
-      #   run: |
-      #     mvn test jacoco:report
-
-      # # 8️⃣ Опційно: commit & push AI-generated tests
-      # - name: Commit AI-generated tests
-      #   if: ${{ always() }}
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git checkout -b feature_unit_tests || git checkout feature_unit_tests
-      #     git add src/test/java
-      #     git commit -m "AI generated unit tests" || echo "No changes to commit"
-      #     git push origin feature_unit_tests --force
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -b auto/unit-tests
+          git add src/test/java
+          if git diff --cached --quiet; then
+            echo "No new tests generated. Skipping commit and PR."
+            exit 0
+          fi
+          git commit -m "Auto-generate unit tests via Copilot"
+          git push --set-upstream origin auto/unit-tests
+          gh pr create \
+            --title "Auto-generated unit tests" \
+            --body "JUnit 5 tests generated automatically by Copilot CLI" \
+            --base development \
+            --head auto/unit-tests
