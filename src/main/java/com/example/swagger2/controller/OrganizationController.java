@@ -73,6 +73,20 @@ public class OrganizationController {
         return service.updateOrganization(id, request);
     }
 
+//    @PutMapping("/{id}")
+//    @Operation(summary = "Update an organization")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200",  description = "Organization updated successfully"),
+//            @ApiResponse(responseCode = "400",  description = "Bad request"),
+//            @ApiResponse(responseCode = "500",  description = "Internal server error")
+//    })
+//    public OrganizationResponse updateOrganization(
+//            @Parameter(description = "Unique identifier of the organization")
+//            @PathVariable("id") String id,
+//            @Valid @RequestBody CreateOrganizationRequest request) {
+//        return service.updateOrganization(id, request);
+//    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an organization")
     @ApiResponses(value = {
