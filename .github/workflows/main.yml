@@ -19,15 +19,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3️⃣ Install GitHub CLI
-      - name: Install GitHub CLI
-        run: sudo apt update && sudo apt install -y gh
+      # 3️⃣ Set up Node.js for Copilot CLI
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-      # 4️⃣ Install GitHub Copilot CLI extension
-      - name: Install GitHub Copilot CLI extension
+      # 4️⃣ Install Copilot CLI via npm
+      - name: Install Copilot CLI
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}  # Personal Access Token with Copilot access
-        run: gh extension install github/copilot-cli-gh
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }} # Personal Access Token with Copilot access
+        run: npm install -g @githubnext/copilot-cli
 
       # 5️⃣ Generate list of changed files
       - name: Generate diff files
@@ -53,7 +55,7 @@ jobs:
               test_file="src/test/java/${file#src/main/java/}Test.java"
               mkdir -p "$(dirname $test_file)"
               echo "Generating test for $file -> $test_file"
-              gh copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
+              copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
               if [ -s "$test_file" ]; then
                 ((TEST_COUNT++))
                 echo "✅ Test generated: $test_file"
