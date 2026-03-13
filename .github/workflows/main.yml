@@ -1,7 +1,7 @@
 name: Auto-generate unit tests with Copilot
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -31,7 +31,7 @@ jobs:
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
 
-      # 5️⃣ Install GitHub CLI (needed for PR creation)
+      # 5️⃣ Install GitHub CLI for PR creation
       - name: Install GitHub CLI
         run: |
           sudo apt-get update
@@ -62,27 +62,20 @@ jobs:
           fi
 
           TEST_COUNT=0
-
           while read file; do
             if [[ $file == src/main/java/*.java ]]; then
-
               test_file="src/test/java/${file#src/main/java/}"
               test_file="${test_file%.java}Test.java"
-
               mkdir -p "$(dirname $test_file)"
-
               echo "Generating test for $file -> $test_file"
-
               copilot generate \
                 --file "$file" \
                 --output "$test_file" \
                 --prompt "Generate JUnit 5 unit tests with Mockito. Return only Java code."
-
               if [ -s "$test_file" ]; then
                 ((TEST_COUNT++))
                 echo "Test generated: $test_file"
               fi
-
             fi
           done < diff_files.txt
 
@@ -95,7 +88,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
@@ -109,7 +101,6 @@ jobs:
           fi
 
           git commit -m "Auto-generate unit tests via Copilot"
-
           git push --set-upstream origin auto/unit-tests
 
           gh pr create \
