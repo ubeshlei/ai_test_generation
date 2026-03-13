@@ -68,7 +68,7 @@ jobs:
               test_file="${test_file%.java}Test.java"
               mkdir -p "$(dirname $test_file)"
               echo "Generating test for $file -> $test_file"
-              copilot -i "$file" -p "Generate JUnit 5 unit tests with Mockito. Return only Java code." > "$test_file"
+              copilot --prompt "Generate JUnit 5 unit tests with Mockito. Return only Java code." < "$file" > "$test_file"
               if [ -s "$test_file" ]; then
                 ((TEST_COUNT++))
                 echo "Test generated: $test_file"
