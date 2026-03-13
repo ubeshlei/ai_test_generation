@@ -11,6 +11,8 @@ jobs:
     steps:
       # 1️⃣ Checkout repository
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # 2️⃣ Set up Java
       - name: Set up Java
@@ -29,7 +31,7 @@ jobs:
       - name: Generate diff files
         run: |
           git fetch origin main
-          git diff --name-only origin/main..HEAD > diff_files.txt
+          git diff --name-only origin/main...HEAD > diff_files.txt
           echo "Changed files:"
           cat diff_files.txt
 
