@@ -29,7 +29,7 @@ jobs:
       - name: Generate diff files
         run: |
           git fetch origin development
-          git diff --name-only origin/development..HEAD > diff_files.txt
+          git diff --name-only origin/main..HEAD > diff_files.txt
           echo "Changed files:"
           cat diff_files.txt
 
