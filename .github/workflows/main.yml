@@ -19,17 +19,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3️⃣ Set up Node.js for Copilot CLI
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
 
-      # 4️⃣ Install Copilot CLI via npm
       - name: Install Copilot CLI
-        env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }} # Personal Access Token with Copilot access
-        run: npm install -g @githubnext/copilot-cli
+        run: npm install -g @github/copilot
 
       # 5️⃣ Generate list of changed files
       - name: Generate diff files
@@ -42,7 +36,7 @@ jobs:
       # 6️⃣ Generate JUnit tests using Copilot CLI
       - name: Generate unit tests with Copilot
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           if [ ! -s diff_files.txt ]; then
             echo "No changed files detected. Skipping test generation."
@@ -58,7 +52,7 @@ jobs:
               copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
               if [ -s "$test_file" ]; then
                 ((TEST_COUNT++))
-                echo "✅ Test generated: $test_file"
+                echo "Test generated: $test_file"
               fi
             fi
           done < diff_files.txt
@@ -70,7 +64,7 @@ jobs:
       # 7️⃣ Commit generated tests and create PR
       - name: Commit and create pull request
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
