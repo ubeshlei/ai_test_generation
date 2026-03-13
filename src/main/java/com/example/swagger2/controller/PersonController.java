@@ -26,47 +26,47 @@ public class PersonController {
         this.service = service;
     }
 
-//    @GetMapping
-//    @Operation(summary = "Get all persons")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200",  description = "Successful response with list of users"),
-//            @ApiResponse(responseCode = "400",  description = "Bad request"),
-//            @ApiResponse(responseCode = "200",  description = "Internal server error")
-//    })
-//    public List<PersonResponse> getAllPersons() {
-//        return service.getAllPersons();
-//    }
-
-
     @GetMapping
     @Operation(summary = "Get all persons")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful response with list of users"),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200",  description = "Successful response with list of users"),
+            @ApiResponse(responseCode = "400",  description = "Bad request"),
+            @ApiResponse(responseCode = "200",  description = "Internal server error")
     })
-    public List<PersonResponse> getAllPersons(@RequestParam(required = false) Integer limit) {
-
-        if (limit != null && limit < 0) {
-            throw new IllegalArgumentException("Limit cannot be negative");
-        }
-
-        List<PersonResponse> persons = service.getAllPersons();
-
-        if (persons == null) {
-            throw new IllegalStateException("Service returned null");
-        }
-
-        if (persons.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        if (limit != null && persons.size() > limit) {
-            return persons.subList(0, limit);
-        }
-
-        return persons;
+    public List<PersonResponse> getAllPersons() {
+        return service.getAllPersons();
     }
+
+
+//    @GetMapping
+//    @Operation(summary = "Get all persons")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Successful response with list of users"),
+//            @ApiResponse(responseCode = "400", description = "Bad request"),
+//            @ApiResponse(responseCode = "500", description = "Internal server error")
+//    })
+//    public List<PersonResponse> getAllPersons(@RequestParam(required = false) Integer limit) {
+//
+//        if (limit != null && limit < 0) {
+//            throw new IllegalArgumentException("Limit cannot be negative");
+//        }
+//
+//        List<PersonResponse> persons = service.getAllPersons();
+//
+//        if (persons == null) {
+//            throw new IllegalStateException("Service returned null");
+//        }
+//
+//        if (persons.isEmpty()) {
+//            return Collections.emptyList();
+//        }
+//
+//        if (limit != null && persons.size() > limit) {
+//            return persons.subList(0, limit);
+//        }
+//
+//        return persons;
+//    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a person by ID")
