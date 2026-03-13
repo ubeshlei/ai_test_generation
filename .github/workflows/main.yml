@@ -28,7 +28,7 @@ jobs:
       # 5️⃣ Generate list of changed files
       - name: Generate diff files
         run: |
-          git fetch origin development
+          git fetch origin main
           git diff --name-only origin/main..HEAD > diff_files.txt
           echo "Changed files:"
           cat diff_files.txt
