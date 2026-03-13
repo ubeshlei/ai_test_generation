@@ -1,4 +1,5 @@
 name: Auto-generate unit tests with Copilot
+
 on:
   push:
     branches:
@@ -8,9 +9,10 @@ jobs:
   generate-tests:
     runs-on: ubuntu-latest
     environment: dev
+
     steps:
       # 1️⃣ Checkout repository
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -21,21 +23,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # 3️⃣ Set up Node.js
       - name: Set up Node.js environment
         uses: actions/setup-node@v4
 
+      # 4️⃣ Install Copilot CLI
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
 
-      # 5️⃣ Generate list of changed files
-      - name: Generate diff files
+      # 5️⃣ Install GitHub CLI (needed for PR creation)
+      - name: Install GitHub CLI
         run: |
-          git fetch origin main
-          git diff --name-only origin/main...HEAD > diff_files.txt
+          sudo apt-get update
+          sudo apt-get install gh -y
+
+      # 6️⃣ Get changed Java files using GitHub API (reliable)
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            src/main/java/**/*.java
+
+      - name: Save changed files
+        run: |
+          echo "${{ steps.changed-files.outputs.all_changed_files }}" > diff_files.txt
           echo "Changed files:"
           cat diff_files.txt
 
-      # 6️⃣ Generate JUnit tests using Copilot CLI
+      # 7️⃣ Generate JUnit tests using Copilot CLI
       - name: Generate unit tests with Copilot
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -46,16 +62,27 @@ jobs:
           fi
 
           TEST_COUNT=0
+
           while read file; do
             if [[ $file == src/main/java/*.java ]]; then
-              test_file="src/test/java/${file#src/main/java/}Test.java"
+
+              test_file="src/test/java/${file#src/main/java/}"
+              test_file="${test_file%.java}Test.java"
+
               mkdir -p "$(dirname $test_file)"
+
               echo "Generating test for $file -> $test_file"
-              copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
+
+              copilot generate \
+                --file "$file" \
+                --output "$test_file" \
+                --prompt "Generate JUnit 5 unit tests with Mockito. Return only Java code."
+
               if [ -s "$test_file" ]; then
                 ((TEST_COUNT++))
                 echo "Test generated: $test_file"
               fi
+
             fi
           done < diff_files.txt
 
@@ -63,23 +90,30 @@ jobs:
           echo "Summary: $TEST_COUNT test(s) generated."
           echo "========================================"
 
-      # 7️⃣ Commit generated tests and create PR
+      # 8️⃣ Commit generated tests and create PR
       - name: Commit and create pull request
         env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git checkout -b auto/unit-tests
+
           git add src/test/java
+
           if git diff --cached --quiet; then
             echo "No new tests generated. Skipping commit and PR."
             exit 0
           fi
+
           git commit -m "Auto-generate unit tests via Copilot"
+
           git push --set-upstream origin auto/unit-tests
+
           gh pr create \
             --title "Auto-generated unit tests" \
             --body "JUnit 5 tests generated automatically by Copilot CLI" \
-            --base development \
+            --base main \
             --head auto/unit-tests
