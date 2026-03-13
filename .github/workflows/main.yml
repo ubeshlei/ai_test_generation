@@ -7,43 +7,25 @@ on:
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
-    environment: dev   # your environment
+    environment: dev
     steps:
-      # ===============================
-      #  Checkout the repository
-      # ===============================
+      # 1️⃣ Checkout repository
       - uses: actions/checkout@v3
 
-      # ===============================
-      #  Set up Java
-      # ===============================
+      # 2️⃣ Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17'
 
-      # ===============================
-      #  Install GitHub CLI and Copilot CLI
-      # ===============================
-      - name: Install GitHub CLI & Copilot CLI
-        run: |
-          sudo apt update
-          sudo apt install -y gh
-          # Install Copilot CLI
-          curl -sSL https://github.com/github/copilot-cli/releases/latest/download/copilot-linux-amd64.tar.gz | tar xz -C /usr/local/bin
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
 
-      # ===============================
-      #  Authenticate GitHub CLI
-      # ===============================
-      - name: Authenticate GitHub CLI
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          echo "$GH_TOKEN" | gh auth login --with-token
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
 
-      # ===============================
-      #  Generate list of changed files
-      # ===============================
+      # 5️⃣ Generate list of changed files
       - name: Generate diff files
         run: |
           git fetch origin development
@@ -51,29 +33,38 @@ jobs:
           echo "Changed files:"
           cat diff_files.txt
 
-      # ===============================
-      #  Generate JUnit tests using Copilot CLI
-      # ===============================
+      # 6️⃣ Generate JUnit tests using Copilot CLI
       - name: Generate unit tests with Copilot
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           if [ ! -s diff_files.txt ]; then
             echo "No changed files detected. Skipping test generation."
             exit 0
           fi
 
+          TEST_COUNT=0
           while read file; do
             if [[ $file == src/main/java/*.java ]]; then
               test_file="src/test/java/${file#src/main/java/}Test.java"
               mkdir -p "$(dirname $test_file)"
               echo "Generating test for $file -> $test_file"
               copilot generate --file "$file" --output "$test_file" --prompt "Generate JUnit 5 tests for this Java class"
+              if [ -s "$test_file" ]; then
+                ((TEST_COUNT++))
+                echo "Test generated: $test_file"
+              fi
             fi
           done < diff_files.txt
 
-      # ===============================
+          echo "========================================"
+          echo "Summary: $TEST_COUNT test(s) generated."
+          echo "========================================"
+
       # 7️⃣ Commit generated tests and create PR
-      # ===============================
       - name: Commit and create pull request
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
